@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Room Type Predictor — NYC Airbnb Classifier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#0B0F1A;
+    --night-soft:#121729;
+    --surface:rgba(255,255,255,0.045);
+    --surface-strong:rgba(255,255,255,0.07);
+    --border:rgba(255,255,255,0.09);
+    --gold:#EEB94E;
+    --coral:#FF6F5E;
+    --teal:#33C6A6;
+    --text:#F3F1EA;
+    --muted:#93A0B7;
+    --radius:20px;
+    --radius-sm:12px;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    min-height:100%;
+    background:var(--night);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+  }
+
+  body{
+    background-image:
+      radial-gradient(680px 460px at 88% -8%, rgba(238,185,78,0.16), transparent 60%),
+      radial-gradient(620px 480px at -6% 18%, rgba(255,111,94,0.14), transparent 60%),
+      radial-gradient(700px 520px at 50% 110%, rgba(51,198,166,0.10), transparent 60%);
+    background-repeat:no-repeat;
+  }
+
+  h1,h2,.group-title,.predicted-line .name,.mono-num{
+    font-family:'Space Grotesk', sans-serif;
+  }
+
+  /* ---------- Header ---------- */
+  header.hero{
+    padding:56px clamp(18px,4vw,56px) 40px;
+    text-align:left;
+  }
+  .hero-inner{
+    max-width:1080px;
+    margin:0 auto;
+  }
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:12.5px;
+    letter-spacing:0.14em;
+    color:var(--gold);
+    margin-bottom:16px;
+    font-weight:600;
+  }
+  .eyebrow .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--coral);
+    box-shadow:0 0 10px 2px rgba(255,111,94,0.7);
+  }
+  .hero h1{
+    margin:0;
+    font-size:clamp(30px,4.4vw,46px);
+    font-weight:700;
+    line-height:1.08;
+    letter-spacing:-0.01em;
+    max-width:640px;
+  }
+  .hero h1 .accent{
+    background:linear-gradient(100deg, var(--gold), var(--coral));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero p{
+    margin:18px 0 0;
+    font-size:15.5px;
+    color:var(--muted);
+    max-width:520px;
+    line-height:1.6;
+  }
+
+  /* ---------- Layout ---------- */
+  main{
+    max-width:1080px;
+    margin:0 auto;
+    padding:0 clamp(18px,4vw,56px) 90px;
+    display:grid;
+    grid-template-columns:1.15fr 0.85fr;
+    gap:24px;
+    align-items:start;
+  }
+  @media (max-width:840px){
+    main{grid-template-columns:1fr;}
+  }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+  }
+
+  /* ---------- Form card ---------- */
+  .form-card{padding:clamp(24px,3vw,34px);}
+  .form-card h2{
+    margin:0 0 6px;
+    font-size:21px;
+    font-weight:600;
+    color:var(--text);
+  }
+  .form-card .sub{
+    margin:0 0 26px;
+    font-size:13.5px;
+    color:var(--muted);
+  }
+
+  .group{margin-bottom:26px;}
+  .group + .group{
+    border-top:1px solid var(--border);
+    padding-top:24px;
+  }
+  .group-title{
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:0.06em;
+    color:var(--gold);
+    margin:0 0 14px;
+  }
+
+  .field-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .field{margin-bottom:14px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{
+    display:block;
+    font-size:12.5px;
+    color:var(--muted);
+    margin-bottom:7px;
+    font-weight:500;
+  }
+  .field input,
+  .field select{
+    width:100%;
+    padding:12px 13px;
+    font-size:14.5px;
+    font-family:'Inter',sans-serif;
+    color:var(--text);
+    background:rgba(255,255,255,0.045);
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    outline:none;
+    transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  .field select{
+    background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2393A0B7'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 12px center;
+    background-size:16px;
+    padding-right:36px;
+  }
+  .field select option{ background:var(--night-soft); color:var(--text); }
+  .field input::placeholder{ color:rgba(147,160,183,0.55); }
+  .field input:focus,
+  .field select:focus{
+    border-color:var(--gold);
+    box-shadow:0 0 0 4px rgba(238,185,78,0.16);
+    background:rgba(255,255,255,0.07);
+  }
+  .field .hint{
+    font-size:11.5px;
+    color:var(--muted);
+    margin-top:5px;
+  }
+
+  .btn{
+    width:100%;
+    margin-top:10px;
+    padding:15px 18px;
+    background:linear-gradient(100deg, var(--gold), var(--coral));
+    color:#1A1206;
+    border:none;
+    border-radius:var(--radius-sm);
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:0.01em;
+    cursor:pointer;
+    transition:filter .15s ease, transform .05s ease;
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn:active{transform:translateY(1px);}
+  .btn:disabled{
+    opacity:0.55;
+    cursor:not-allowed;
+  }
+
+  .error-box{
+    display:none;
+    margin-top:14px;
+    padding:12px 14px;
+    background:rgba(255,111,94,0.1);
+    border:1px solid rgba(255,111,94,0.4);
+    color:#FFB3A8;
+    font-size:13px;
+    border-radius:var(--radius-sm);
+  }
+
+  /* ---------- Result card ---------- */
+  .result-card{
+    padding:clamp(24px,3vw,34px);
+    position:sticky;
+    top:20px;
+    min-height:380px;
+  }
+  .result-card h2{
+    margin:0 0 6px;
+    font-size:21px;
+    font-weight:600;
+    color:var(--text);
+  }
+  .result-card .sub{
+    margin:0 0 26px;
+    font-size:13.5px;
+    color:var(--muted);
+  }
+
+  .placeholder{
+    padding:48px 16px;
+    text-align:center;
+    color:var(--muted);
+    font-size:14px;
+    border:1.5px dashed var(--border);
+    border-radius:var(--radius);
+  }
+  .placeholder .mark{
+    width:44px;height:44px;
+    margin:0 auto 16px;
+    border-radius:50%;
+    background:conic-gradient(from 180deg, var(--gold), var(--coral), var(--teal), var(--gold));
+    opacity:0.5;
+  }
+
+  .result-body{display:none;}
+
+  .predicted-line{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:20px;
+    background:var(--surface-strong);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    margin-bottom:26px;
+  }
+  .predicted-line .mark{
+    width:54px;height:54px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:21px;color:#14100A;
+    flex:none;
+  }
+  .predicted-line .txt .eyebrow2{
+    font-size:11.5px;
+    color:var(--muted);
+    margin:0 0 4px;
+    letter-spacing:0.06em;
+    font-family:'Inter',sans-serif;
+    font-weight:500;
+  }
+  .predicted-line .txt .name{
+    font-size:21px;
+    font-weight:600;
+    color:var(--text);
+    margin:0;
+  }
+
+  .prob-row{margin-bottom:18px;}
+  .prob-row:last-child{margin-bottom:0;}
+  .prob-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:8px;
+  }
+  .prob-head .name{
+    font-size:13.5px;
+    font-weight:500;
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    gap:9px;
+  }
+  .prob-head .dot{
+    width:9px;height:9px;border-radius:50%;
+    display:inline-block;
+  }
+  .prob-head .pct{
+    font-size:14px;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+    font-family:'Space Grotesk',sans-serif;
+  }
+  .track{
+    height:9px;
+    background:rgba(255,255,255,0.06);
+    border-radius:99px;
+    overflow:hidden;
+  }
+  .fill{
+    height:100%;
+    width:0%;
+    border-radius:99px;
+    transition:width .6s cubic-bezier(.2,.8,.2,1);
+  }
+
+  .spinner{
+    width:16px;height:16px;
+    border:2px solid rgba(20,16,10,0.25);
+    border-top-color:#14100A;
+    border-radius:50%;
+    display:inline-block;
+    animation:spin .7s linear infinite;
+    vertical-align:-3px;
+    margin-right:8px;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  footer{
+    text-align:center;
+    padding:24px;
+    font-size:12px;
+    color:var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow"><span class="dot"></span>FastAPI · Random Forest</div>
+    <h1>Predict a listing's <span class="accent">room type</span> from its numbers.</h1>
+    <p>Drop in a listing's location, price, and activity stats — the model classifies it as an entire home, a private room, or a shared room, with confidence for each.</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ FORM ============ -->
+  <section class="card form-card">
+    <h2>Listing details</h2>
+    <p class="sub">Fill in what you know about the listing.</p>
+
+    <form id="predict-form">
+
+      <div class="group">
+        <p class="group-title">LOCATION</p>
+        <div class="field-row">
+          <div class="field">
+            <label for="neighbourhood_group">Borough</label>
+            <select id="neighbourhood_group" required>
+              <option value="" disabled selected>Select borough</option>
+              <option>Manhattan</option>
+              <option>Brooklyn</option>
+              <option>Queens</option>
+              <option>Bronx</option>
+              <option>Staten Island</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="neighbourhood">Neighbourhood</label>
+            <select id="neighbourhood" required>
+              <option value="" disabled selected>Select neighbourhood</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="latitude">Latitude</label>
+            <input type="number" id="latitude" step="0.00001" min="40.4" max="41.0" placeholder="40.72" required>
+          </div>
+          <div class="field">
+            <label for="longitude">Longitude</label>
+            <input type="number" id="longitude" step="0.00001" min="-74.3" max="-73.6" placeholder="-73.95" required>
+          </div>
+        </div>
+        <p class="hint">NYC listings roughly span 40.50–40.92 latitude and −74.25 to −73.70 longitude.</p>
+      </div>
+
+      <div class="group">
+        <p class="group-title">PRICING &amp; STAY</p>
+        <div class="field-row">
+          <div class="field">
+            <label for="price">Price per night (USD)</label>
+            <input type="number" id="price" min="0" step="1" placeholder="150" required>
+          </div>
+          <div class="field">
+            <label for="minimum_nights">Minimum nights</label>
+            <input type="number" id="minimum_nights" min="1" step="1" placeholder="3" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <p class="group-title">ACTIVITY</p>
+        <div class="field-row">
+          <div class="field">
+            <label for="number_of_reviews">Number of reviews</label>
+            <input type="number" id="number_of_reviews" min="0" step="1" placeholder="12" required>
+          </div>
+          <div class="field">
+            <label for="reviews_per_month">Reviews per month</label>
+            <input type="number" id="reviews_per_month" min="0" step="0.01" placeholder="0.8" required>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="calculated_host_listings_count">Host's total listings</label>
+            <input type="number" id="calculated_host_listings_count" min="0" step="1" placeholder="1" required>
+          </div>
+          <div class="field">
+            <label for="availability_365">Availability (days/year)</label>
+            <input type="number" id="availability_365" min="0" max="365" step="1" placeholder="200" required>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn" id="submit-btn">Predict room type</button>
+      <div class="error-box" id="error-box"></div>
+    </form>
+  </section>
+
+  <!-- ============ RESULT ============ -->
+  <section class="card result-card">
+    <h2>Prediction</h2>
+    <p class="sub">Result and class confidence from the model.</p>
+
+    <div class="placeholder" id="placeholder">
+      <div class="mark"></div>
+      Awaiting listing details.<br>Fill in the form and predict to see a result here.
+    </div>
+
+    <div class="result-body" id="result-body">
+      <div class="predicted-line">
+        <div class="mark" id="pred-mark">?</div>
+        <div class="txt">
+          <p class="eyebrow2">Predicted room type</p>
+          <p class="name" id="pred-name">—</p>
+        </div>
+      </div>
+
+      <div id="prob-list"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>Served from your FastAPI model endpoint · built for local / demo use</footer>
+
+<script>
+  // ---- Configuration ----
+  // If this page is served by the same FastAPI app (e.g. via StaticFiles),
+  // a relative path works as-is. If you host the frontend separately,
+  // set API_BASE to the full backend URL, e.g. "http://127.0.0.1:8000".
+  const API_BASE = "";
+  const PREDICT_URL = API_BASE + "/predict";
+
+  // ---- Room type visual language ----
+  const ROOM_TYPES = {
+    "Entire home/apt": { letter: "E", hex: "#EEB94E" }, // gold
+    "Private room":    { letter: "P", hex: "#FF6F5E" }, // coral
+    "Shared room":     { letter: "S", hex: "#33C6A6" }  // teal
+  };
+
+  // ---- Neighbourhoods (NYC Airbnb dataset, 221 unique values) ----
+  const NEIGHBOURHOODS = ["Allerton","Arden Heights","Arrochar","Arverne","Astoria","Bath Beach","Battery Park City","Bay Ridge","Bay Terrace","Bay Terrace, Staten Island","Baychester","Bayside","Bayswater","Bedford-Stuyvesant","Belle Harbor","Bellerose","Belmont","Bensonhurst","Bergen Beach","Boerum Hill","Borough Park","Breezy Point","Briarwood","Brighton Beach","Bronxdale","Brooklyn Heights","Brownsville","Bull's Head","Bushwick","Cambria Heights","Canarsie","Carroll Gardens","Castle Hill","Castleton Corners","Chelsea","Chinatown","City Island","Civic Center","Claremont Village","Clason Point","Clifton","Clinton Hill","Co-op City","Cobble Hill","College Point","Columbia St","Concord","Concourse","Concourse Village","Coney Island","Corona","Crown Heights","Cypress Hills","DUMBO","Ditmars Steinway","Dongan Hills","Douglaston","Downtown Brooklyn","Dyker Heights","East Elmhurst","East Flatbush","East Harlem","East Morrisania","East New York","East Village","Eastchester","Edenwald","Edgemere","Elmhurst","Eltingville","Emerson Hill","Far Rockaway","Fieldston","Financial District","Flatbush","Flatiron District","Flatlands","Flushing","Fordham","Forest Hills","Fort Greene","Fort Hamilton","Fort Wadsworth","Fresh Meadows","Glendale","Gowanus","Gramercy","Graniteville","Grant City","Gravesend","Great Kills","Greenpoint","Greenwich Village","Grymes Hill","Harlem","Hell's Kitchen","Highbridge","Hollis","Holliswood","Howard Beach","Howland Hook","Huguenot","Hunts Point","Inwood","Jackson Heights","Jamaica","Jamaica Estates","Jamaica Hills","Kensington","Kew Gardens","Kew Gardens Hills","Kingsbridge","Kips Bay","Laurelton","Lighthouse Hill","Little Italy","Little Neck","Long Island City","Longwood","Lower East Side","Manhattan Beach","Marble Hill","Mariners Harbor","Maspeth","Melrose","Middle Village","Midland Beach","Midtown","Midwood","Mill Basin","Morningside Heights","Morris Heights","Morris Park","Morrisania","Mott Haven","Mount Eden","Mount Hope","Murray Hill","Navy Yard","Neponsit","New Brighton","New Dorp","New Dorp Beach","New Springville","NoHo","Nolita","North Riverdale","Norwood","Oakwood","Olinville","Ozone Park","Park Slope","Parkchester","Pelham Bay","Pelham Gardens","Port Morris","Port Richmond","Prince's Bay","Prospect Heights","Prospect-Lefferts Gardens","Queens Village","Randall Manor","Red Hook","Rego Park","Richmond Hill","Richmondtown","Ridgewood","Riverdale","Rockaway Beach","Roosevelt Island","Rosebank","Rosedale","Rossville","Schuylerville","Sea Gate","Sheepshead Bay","Shore Acres","Silver Lake","SoHo","Soundview","South Beach","South Ozone Park","South Slope","Springfield Gardens","Spuyten Duyvil","St. Albans","St. George","Stapleton","Stuyvesant Town","Sunnyside","Sunset Park","Theater District","Throgs Neck","Todt Hill","Tompkinsville","Tottenville","Tremont","Tribeca","Two Bridges","Unionport","University Heights","Upper East Side","Upper West Side","Van Nest","Vinegar Hill","Wakefield","Washington Heights","West Brighton","West Farms","West Village","Westchester Square","Westerleigh","Whitestone","Williamsbridge","Williamsburg","Willowbrook","Windsor Terrace","Woodhaven","Woodlawn","Woodrow","Woodside"];
+
+  const neighbourhoodSelect = document.getElementById("neighbourhood");
+  NEIGHBOURHOODS.forEach(n => {
+    const opt = document.createElement("option");
+    opt.value = n;
+    opt.textContent = n;
+    neighbourhoodSelect.appendChild(opt);
+  });
+
+  // ---- Build the probability rows once ----
+  const probList = document.getElementById("prob-list");
+  const probEls = {};
+  Object.keys(ROOM_TYPES).forEach(name => {
+    const t = ROOM_TYPES[name];
+    const row = document.createElement("div");
+    row.className = "prob-row";
+    row.innerHTML = `
+      <div class="prob-head">
+        <span class="name"><span class="dot" style="background:${t.hex}"></span>${name}</span>
+        <span class="pct" id="pct-${t.letter}" style="color:${t.hex}">0%</span>
+      </div>
+      <div class="track"><div class="fill" id="fill-${t.letter}" style="background:${t.hex}"></div></div>
+    `;
+    probList.appendChild(row);
+    probEls[name] = t.letter;
+  });
+
+  // ---- Form submit ----
+  const form = document.getElementById("predict-form");
+  const submitBtn = document.getElementById("submit-btn");
+  const errorBox = document.getElementById("error-box");
+  const placeholder = document.getElementById("placeholder");
+  const resultBody = document.getElementById("result-body");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorBox.style.display = "none";
+
+    const payload = new FormData();
+    payload.append("neighbourhood_group", document.getElementById("neighbourhood_group").value);
+    payload.append("neighbourhood", document.getElementById("neighbourhood").value);
+    payload.append("latitude", document.getElementById("latitude").value);
+    payload.append("longitude", document.getElementById("longitude").value);
+    payload.append("price", document.getElementById("price").value);
+    payload.append("minimum_nights", document.getElementById("minimum_nights").value);
+    payload.append("number_of_reviews", document.getElementById("number_of_reviews").value);
+    payload.append("reviews_per_month", document.getElementById("reviews_per_month").value);
+    payload.append("calculated_host_listings_count", document.getElementById("calculated_host_listings_count").value);
+    payload.append("availability_365", document.getElementById("availability_365").value);
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner"></span>Predicting…';
+
+    try {
+      const res = await fetch(PREDICT_URL, { method: "POST", body: payload });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Server responded ${res.status}: ${text.slice(0, 200)}`);
+      }
+      const data = await res.json();
+      renderResult(data);
+    } catch (err) {
+      errorBox.textContent = "Couldn't get a prediction — " + err.message +
+        ". Check that the FastAPI server is running and reachable at " + (PREDICT_URL || "/predict") + ".";
+      errorBox.style.display = "block";
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Predict room type";
+    }
+  });
+
+  function renderResult(data) {
+    const predicted = data.predicted_room_type;
+    const probs = data.predicted_probability; // array, order matches model classes
+    const classOrder = Object.keys(ROOM_TYPES); // assumes alphabetical order from sklearn: Entire home/apt, Private room, Shared room
+
+    placeholder.style.display = "none";
+    resultBody.style.display = "block";
+
+    const t = ROOM_TYPES[predicted] || { letter: "?", hex: "#93A0B7" };
+    const mark = document.getElementById("pred-mark");
+    mark.textContent = t.letter;
+    mark.style.background = t.hex;
+    document.getElementById("pred-name").textContent = predicted;
+
+    if (Array.isArray(probs) && probs.length === classOrder.length) {
+      classOrder.forEach((name, i) => {
+        const letter = probEls[name];
+        const pct = Math.round(probs[i] * 1000) / 10;
+        document.getElementById(`pct-${letter}`).textContent = pct + "%";
+        document.getElementById(`fill-${letter}`).style.width = pct + "%";
+      });
+    }
+  }
+</script>
+
+</body>
+</html>
