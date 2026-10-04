@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Food Delivery Prediction</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background:
+                radial-gradient(circle at 10% 10%, rgba(255, 140, 66, 0.16), transparent 28%),
+                radial-gradient(circle at 90% 90%, rgba(255, 94, 98, 0.12), transparent 28%),
+                #0b0f14;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .page {
+            width: 100%;
+            min-height: 100vh;
+            padding: 45px 20px;
+        }
+
+        /* HEADER */
+
+        .header {
+            max-width: 1150px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #ff8a3d, #ff4f5a);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 23px;
+            box-shadow: 0 10px 30px rgba(255, 100, 70, 0.25);
+        }
+
+        .brand h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+        }
+
+        .brand p {
+            color: #89919c;
+            font-size: 13px;
+            margin-top: 3px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 14px;
+            border: 1px solid #252c34;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 30px;
+            color: #aab2bd;
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #35d07f;
+            box-shadow: 0 0 10px #35d07f;
+        }
+
+        /* MAIN CARD */
+
+        .container {
+            max-width: 1150px;
+            margin: auto;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .hero h2 {
+            font-size: clamp(30px, 5vw, 48px);
+            line-height: 1.1;
+            letter-spacing: -1.5px;
+            margin-bottom: 12px;
+        }
+
+        .hero h2 span {
+            background: linear-gradient(90deg, #ff9a52, #ff5c68);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            max-width: 650px;
+            margin: auto;
+            color: #8e98a5;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .card {
+            background: rgba(18, 23, 30, 0.92);
+            border: 1px solid #252c34;
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow:
+                0 25px 80px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.025);
+            backdrop-filter: blur(15px);
+        }
+
+        /* SECTION */
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .section-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            background: rgba(255, 123, 61, 0.12);
+            color: #ff9852;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .section-header h3 {
+            font-size: 16px;
+            font-weight: 650;
+        }
+
+        .section-header span {
+            color: #69727e;
+            font-size: 12px;
+            margin-left: 3px;
+        }
+
+        /* FORM GRID */
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field label {
+            color: #aeb6c1;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        input,
+        select {
+            width: 100%;
+            height: 47px;
+            border: 1px solid #2a323c;
+            border-radius: 11px;
+            background: #10151b;
+            color: #ffffff;
+            padding: 0 14px;
+            font-size: 13px;
+            outline: none;
+            transition: 0.2s ease;
+        }
+
+        input::placeholder {
+            color: #535c67;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #ff8247;
+            box-shadow: 0 0 0 3px rgba(255, 130, 71, 0.10);
+            background: #121820;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        select option {
+            background: #121820;
+            color: white;
+        }
+
+        /* DIVIDER */
+
+        .divider {
+            height: 1px;
+            background: #252c34;
+            margin: 8px 0 30px;
+        }
+
+        /* BUTTON */
+
+        .button-area {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .predict-btn {
+            border: none;
+            cursor: pointer;
+            min-width: 240px;
+            height: 54px;
+            padding: 0 28px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #ff913f, #ff5361);
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.1px;
+            box-shadow: 0 12px 30px rgba(255, 91, 70, 0.22);
+            transition: all 0.25s ease;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 35px rgba(255, 91, 70, 0.32);
+        }
+
+        .predict-btn:active {
+            transform: translateY(0);
+        }
+
+        .predict-btn.loading {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+        /* RESULT */
+
+        #result {
+            display: none;
+            margin-top: 28px;
+            padding: 25px;
+            border-radius: 18px;
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(255, 137, 67, 0.09),
+                    rgba(255, 81, 96, 0.05)
+                );
+            border: 1px solid rgba(255, 126, 67, 0.22);
+            text-align: center;
+        }
+
+        .result-label {
+            color: #89929e;
+            font-size: 12px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        #result h2 {
+            font-size: 34px;
+            color: #ffffff;
+        }
+
+        #result h2 span {
+            color: #ff9250;
+        }
+
+        .result-subtitle {
+            margin-top: 7px;
+            color: #717b87;
+            font-size: 12px;
+        }
+
+        /* FOOTER */
+
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #555e69;
+            font-size: 11px;
+        }
+
+        /* RESPONSIVE */
+
+        @media (max-width: 900px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            .page {
+                padding: 25px 14px;
+            }
+
+            .header {
+                margin-bottom: 25px;
+            }
+
+            .status {
+                display: none;
+            }
+
+            .card {
+                padding: 20px;
+                border-radius: 18px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h2 {
+                font-size: 34px;
+            }
+
+            .hero p {
+                font-size: 13px;
+            }
+
+            .predict-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <!-- HEADER -->
+
+    <header class="header">
+
+        <div class="brand">
+
+            <div class="logo">
+                🚴
+            </div>
+
+            <div>
+                <h1>DeliveryAI</h1>
+                <p>Intelligent Delivery Time Prediction</p>
+            </div>
+
+        </div>
+
+        <div class="status">
+            <div class="status-dot"></div>
+            ML Model Online
+        </div>
+
+    </header>
+
+
+    <!-- HERO -->
+
+    <div class="container">
+
+        <div class="hero">
+
+            <h2>
+                Predict Your
+                <span>Delivery Time</span>
+            </h2>
+
+            <p>
+                Enter the order and delivery details below.
+                Our machine learning model will estimate the
+                expected delivery time in minutes.
+            </p>
+
+        </div>
+
+
+        <!-- FORM -->
+
+        <div class="card">
+
+            <form id="predictionForm">
+
+
+                <!-- DELIVERY INFORMATION -->
+
+                <div class="section">
+
+                    <div class="section-header">
+
+                        <div class="section-number">01</div>
+
+                        <h3>Delivery Information</h3>
+
+                        <span>Rider & vehicle details</span>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <div class="field">
+                            <label>Delivery Person Age</label>
+                            <input
+                                type="number"
+                                id="delivery_person_age"
+                                placeholder="e.g. 29"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="field">
+                            <label>Delivery Person Rating</label>
+                            <input
+                                type="number"
+                                step="0.1"
+                                id="delivery_person_ratings"
+                                placeholder="e.g. 4.7"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="field">
+                            <label>Vehicle Condition</label>
+                            <input
+                                type="number"
+                                id="vehicle_condition"
+                                placeholder="1 - 3"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="field">
+                            <label>Type of Vehicle</label>
+                            <select id="type_of_vehicle" required>
+                                <option value="">Select vehicle</option>
+                                <option value="motorcycle">Motorcycle</option>
+                                <option value="scooter">Scooter</option>
+                                <option value="electric_scooter">Electric Scooter</option>
+                                <option value="bicycle">Bicycle</option>
+                            </select>
+                        </div>
+
+
+                        <div class="field">
+                            <label>Multiple Deliveries</label>
+                            <input
+                                type="number"
+                                id="multiple_deliveries"
+                                placeholder="e.g. 1"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="field">
+                            <label>Distance (km)</label>
+                            <input
+                                type="number"
+                                step="0.1"
+                                id="distance_km"
+                                placeholder="e.g. 7.5"
+                                required
+                            >
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="divider"></div>
+
+
+                <!-- ORDER INFORMATION -->
+
+                <div class="section">
+
+                    <div class="section-header">
+
+                        <div class="section-number">02</div>
+
+                        <h3>Order Information</h3>
+
+                        <span>Order conditions</span>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <div class="field">
+                            <label>Weather Conditions</label>
+
+                            <select id="weatherconditions" required>
+
+                                <option value="">Select weather</option>
+
+                                <option value="Sunny">Sunny</option>
+                                <option value="Cloudy">Cloudy</option>
+                                <option value="Windy">Windy</option>
+                                <option value="Fog">Fog</option>
+                                <option value="Sandstorms">Sandstorms</option>
+                                <option value="Stormy">Stormy</option>
+
+                            </select>
+                        </div>
+
+
+                        <div class="field">
+                            <label>Road Traffic Density</label>
+
+                            <select id="road_traffic_density" required>
+
+                                <option value="">Select traffic</option>
+
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Jam">Jam</option>
+
+                            </select>
+                        </div>
+
+
+                        <div class="field">
+                            <label>Type of Order</label>
+
+                            <select id="type_of_order" required>
+
+                                <option value="">Select order</option>
+
+                                <option value="Snack">Snack</option>
+                                <option value="Meal">Meal</option>
+                                <option value="Drinks">Drinks</option>
+                                <option value="Buffet">Buffet</option>
+
+                            </select>
+                        </div>
+
+
+                        <div class="field">
+                            <label>Festival</label>
+
+                            <select id="festival" required>
+
+                                <option value="">Select</option>
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+
+                            </select>
+                        </div>
+
+
+                        <div class="field">
+                            <label>City</label>
+
+                            <select id="city" required>
+
+                                <option value="">Select city type</option>
+
+                                <option value="Metropolitian">Metropolitian</option>
+                                <option value="Urban">Urban</option>
+                                <option value="Semi-Urban">Semi-Urban</option>
+
+                            </select>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="divider"></div>
+
+
+                <!-- TIME INFORMATION -->
+
+                <div class="section">
+
+                    <div class="section-header">
+
+                        <div class="section-number">03</div>
+
+                        <h3>Order Timing</h3>
+
+                        <span>Time & date information</span>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <div class="field">
+                            <label>Order Hour</label>
+
+                            <input
+                                type="number"
+                                min="0"
+                                max="23"
+                                id="time_orderd_hr"
+                                placeholder="0 - 23"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="field">
+                            <label>Order Minutes</label>
+
+                            <input
+                                type="number"
+                                min="0"
+                                max="59"
+                                id="time_orderd_mins"
+                                placeholder="0 - 59"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="field">
+                            <label>Picked Hour</label>
+
+                            <input
+                                type="number"
+                                min="0"
+                                max="23"
+                                id="time_order_picked_hr"
+                                placeholder="0 - 23"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="field">
+                            <label>Picked Minutes</label>
+
+                            <input
+                                type="number"
+                                min="0"
+                                max="59"
+                                id="time_order_picked_mins"
+                                placeholder="0 - 59"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="field">
+                            <label>Day of Week</label>
+
+                            <input
+                                type="number"
+                                min="0"
+                                max="6"
+                                id="orderd_day_of_week"
+                                placeholder="0 - 6"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="field">
+                            <label>Month</label>
+
+                            <input
+                                type="number"
+                                min="1"
+                                max="12"
+                                id="orderd_month"
+                                placeholder="1 - 12"
+                                required
+                            >
+                        </div>
+
+
+                        <div class="field">
+                            <label>Weekend</label>
+
+                            <select id="orderd_is_weekend" required>
+
+                                <option value="">Select</option>
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- BUTTON -->
+
+                <div class="button-area">
+
+                    <button
+                        type="submit"
+                        class="predict-btn"
+                        id="predictButton"
+                    >
+                        Predict Delivery Time
+                    </button>
+
+                </div>
+
+            </form>
+
+
+            <!-- RESULT -->
+
+            <div id="result">
+
+                <div class="result-label">
+                    Estimated Delivery Time
+                </div>
+
+                <h2>
+                    <span id="predictionValue">--</span>
+                    minutes
+                </h2>
+
+                <div class="result-subtitle">
+                    Prediction generated by the trained ML model
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer">
+            Food Delivery Prediction • Machine Learning Application
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    const form = document.getElementById("predictionForm");
+
+    const result = document.getElementById("result");
+
+    const predictionValue =
+        document.getElementById("predictionValue");
+
+    const predictButton =
+        document.getElementById("predictButton");
+
+
+    form.addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+
+        predictButton.textContent = "Predicting...";
+        predictButton.classList.add("loading");
+
+        result.style.display = "none";
+
+
+        const data = {
+
+            delivery_person_age:
+                parseFloat(
+                    document.getElementById(
+                        "delivery_person_age"
+                    ).value
+                ),
+
+            delivery_person_ratings:
+                parseFloat(
+                    document.getElementById(
+                        "delivery_person_ratings"
+                    ).value
+                ),
+
+            weatherconditions:
+                document.getElementById(
+                    "weatherconditions"
+                ).value,
+
+            road_traffic_density:
+                document.getElementById(
+                    "road_traffic_density"
+                ).value,
+
+            vehicle_condition:
+                parseInt(
+                    document.getElementById(
+                        "vehicle_condition"
+                    ).value
+                ),
+
+            type_of_order:
+                document.getElementById(
+                    "type_of_order"
+                ).value,
+
+            type_of_vehicle:
+                document.getElementById(
+                    "type_of_vehicle"
+                ).value,
+
+            multiple_deliveries:
+                parseInt(
+                    document.getElementById(
+                        "multiple_deliveries"
+                    ).value
+                ),
+
+            festival:
+                parseInt(
+                    document.getElementById(
+                        "festival"
+                    ).value
+                ),
+
+            city:
+                document.getElementById(
+                    "city"
+                ).value,
+
+            time_orderd_hr:
+                parseInt(
+                    document.getElementById(
+                        "time_orderd_hr"
+                    ).value
+                ),
+
+            time_orderd_mins:
+                parseInt(
+                    document.getElementById(
+                        "time_orderd_mins"
+                    ).value
+                ),
+
+            time_order_picked_hr:
+                parseInt(
+                    document.getElementById(
+                        "time_order_picked_hr"
+                    ).value
+                ),
+
+            time_order_picked_mins:
+                parseInt(
+                    document.getElementById(
+                        "time_order_picked_mins"
+                    ).value
+                ),
+
+            orderd_day_of_week:
+                parseInt(
+                    document.getElementById(
+                        "orderd_day_of_week"
+                    ).value
+                ),
+
+            orderd_month:
+                parseInt(
+                    document.getElementById(
+                        "orderd_month"
+                    ).value
+                ),
+
+            orderd_is_weekend:
+                parseInt(
+                    document.getElementById(
+                        "orderd_is_weekend"
+                    ).value
+                ),
+
+            distance_km:
+                parseFloat(
+                    document.getElementById(
+                        "distance_km"
+                    ).value
+                )
+        };
+
+
+        try {
+
+            const response = await fetch(
+                "/predict",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify(data)
+                }
+            );
+
+
+            const output = await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    output.detail ||
+                    "Prediction failed"
+                );
+
+            }
+
+
+            predictionValue.textContent =
+                output.predicted_delivery_time;
+
+
+            result.style.display = "block";
+
+
+            result.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+
+
+        } catch (error) {
+
+            alert(
+                "Error: " + error.message
+            );
+
+        } finally {
+
+            predictButton.textContent =
+                "Predict Delivery Time";
+
+            predictButton.classList.remove(
+                "loading"
+            );
+
+        }
+
+    });
+
+</script>
+
+</body>
+
+</html>
