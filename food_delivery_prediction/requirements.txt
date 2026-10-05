@@ -9,3 +9,4 @@ pydantic
 jinja2
 pytest
 httpx2
+xgboost
