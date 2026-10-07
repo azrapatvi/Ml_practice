@@ -119,11 +119,6 @@ food-delivery-prediction/
 │   └── templates/
 │       └── index.html
 │
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   └── external/
-│
 ├── models/
 │   └── model.pkl
 │
